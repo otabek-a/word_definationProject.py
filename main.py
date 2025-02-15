@@ -6,7 +6,7 @@ from defination import get_definition
 from topic import topic_name,add_topic,list_topic,matn,show_list
 from delete import clear_base,clear_data
 wiki_wiki = wikipediaapi.Wikipedia(
-    user_agent="MyTelegramBot/1.0 (contact: example@email.com)",  # O'zingizning User-Agent
+    user_agent="MyTelegramBot/1.0 (contact: example@email.com)",  
     language="en"
 )
 def check_message(update,context):

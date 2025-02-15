@@ -1,27 +1,27 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import wikipediaapi
 from telegram import ReplyKeyboardMarkup
-from tinydb import TinyDB
+from tinydb import TinyDB, Query
 from config import TOKEN
 import defination
-res = defination.get_topics()
-menu=TinyDB('asosiy.json')
 
-for i in res:
-   menu.insert({'topic':i})
-print(menu.all())
+# Topics bazasini yaratamiz
+res = TinyDB("topics.json")
+
 def show_list(update, context):
-    topics = defination.get_topics()
+    global res
 
-    if not topics:
+    if len(res) == 0:
         update.message.reply_text("📂 *Your topic list is empty.*\n"
                                   "➡️ Create a new topic to get started! 🎯",
                                   parse_mode="Markdown")
         return
 
     message = "📖 *All Topics and Words:* 📚\n\n"
-
-    for topic in topics:
+    topics = res.all()
+    
+    for topic_entry in topics:
+        topic = topic_entry.get("name")  # Bazadan topic nomini olamiz
         db = TinyDB(f"{topic}.json")
         words = db.all()
 
@@ -40,8 +40,6 @@ def show_list(update, context):
 
     update.message.reply_text(message, parse_mode="Markdown")
 
-
-
 def matn(update, context):
     update.message.reply_text("✍️ *Adding words to a topic:* 📝\n\n"
                               "Please send your word in this format:\n"
@@ -49,15 +47,15 @@ def matn(update, context):
                               )
 
 def list_topic(update, context):
-    res = defination.get_topics()
-    if not res:
+    if len(res) == 0:
         update.message.reply_text("📂 *Your topic list is empty.*\n"
                                   "➡️ Create a new topic to get started! 🎯",
                                   parse_mode="Markdown")
         return
 
     message = "📝 *Your Topics:* 📖\n\n"
-    for index, topic in enumerate(res, start=1):
+    for index, topic_entry in enumerate(res.all(), start=1):
+        topic = topic_entry.get("name")  
         db = TinyDB(f"{topic}.json")  
         word_count = len(db)  
         message += f"{index}. 📌 *{topic}* — {word_count} words 📖\n"
@@ -79,17 +77,20 @@ def topic_name(update, context):
 
 def add_topic(update, context):
     global res
-    text = update.message.text.strip()
-    a = text
+    text = update.message.text.strip().lower()
     text = text.replace('/', '')
 
-    if text in res:
-        update.message.reply_text(f"⚠️ *You already have this topic:* 📌 {a}", parse_mode="Markdown")
+    # TinyDB dan mavzuni qidiramiz
+    Topic = Query()
+    existing_topic = res.search(Topic.name == text)
+
+    if existing_topic:
+        update.message.reply_text(f"⚠️ *You already have this topic:* 📌 {text}", parse_mode="Markdown")
         return
 
     if text:
-        db = TinyDB(f"{text}.json")
-        res.append(text)
-        update.message.reply_text(f"✅ *New topic created:* 📌 {a}", parse_mode="Markdown")
+        res.insert({"name": text})  # TinyDB ga yangi mavzuni kiritamiz
+        TinyDB(f"{text}.json")  # Mavzu uchun alohida fayl yaratamiz
+        update.message.reply_text(f"✅ *New topic created:* 📌 {text}", parse_mode="Markdown")
     else:
         update.message.reply_text("⚠️ *Topic cannot be empty!* ❌", parse_mode="Markdown")

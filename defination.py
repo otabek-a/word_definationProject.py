@@ -2,7 +2,9 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import wikipediaapi
 from tinydb import TinyDB,Query
 from config import TOKEN
-result=[]
+from tinydb import where
+result = TinyDB("topics.json")
+
 
 wiki_wiki = wikipediaapi.Wikipedia(
     user_agent="MyTelegramBot/1.0 (contact: example@email.com)",  # O'zingizning User-Agent
@@ -41,7 +43,7 @@ def get_definition(update, context):
     else:
         db.insert({"term": word, "definition": clean_definition})
         update.message.reply_text(f"✅ '{word}' has been added to *{topic}* database.")
-    if topic not in result:
-        result.append(topic)
+    if not result.search(where('topic_name') == topic):
+       result.insert({'topic_name': topic})
 def get_topics():
     return result
