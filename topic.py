@@ -4,9 +4,24 @@ from telegram import ReplyKeyboardMarkup
 from tinydb import TinyDB, Query
 from config import TOKEN
 import defination
+import os
 
-# Topics bazasini yaratamiz
 res = TinyDB("topics.json")
+
+
+def new_topic(update, context):
+    global res
+    matn = update.message.text.strip().split('*')  
+
+    if not matn or len(matn[0].strip()) == 0: 
+        update.message.reply_text("⚠️ *Topic name cannot be empty!* ❌", parse_mode="Markdown")
+        return
+
+    num = matn[0].strip()
+    res.insert({"name": num})  
+    print(num)
+
+
 
 def show_list(update, context):
     global res
@@ -21,7 +36,7 @@ def show_list(update, context):
     topics = res.all()
     
     for topic_entry in topics:
-        topic = topic_entry.get("name")  # Bazadan topic nomini olamiz
+        topic = topic_entry.get("name")  
         db = TinyDB(f"{topic}.json")
         words = db.all()
 
@@ -80,7 +95,7 @@ def add_topic(update, context):
     text = update.message.text.strip().lower()
     text = text.replace('/', '')
 
-    # TinyDB dan mavzuni qidiramiz
+    print(res.all())
     Topic = Query()
     existing_topic = res.search(Topic.name == text)
 
@@ -89,8 +104,8 @@ def add_topic(update, context):
         return
 
     if text:
-        res.insert({"name": text})  # TinyDB ga yangi mavzuni kiritamiz
-        TinyDB(f"{text}.json")  # Mavzu uchun alohida fayl yaratamiz
+        res.insert({"topic_name": text})  
+        TinyDB(f"{text}.json") 
         update.message.reply_text(f"✅ *New topic created:* 📌 {text}", parse_mode="Markdown")
     else:
         update.message.reply_text("⚠️ *Topic cannot be empty!* ❌", parse_mode="Markdown")

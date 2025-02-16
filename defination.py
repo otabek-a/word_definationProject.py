@@ -16,7 +16,8 @@ def get_definition(update, context):
     text = update.message.text.strip()
     parts = text.split('*')
     global result
-    if len(parts) < 2:
+
+    if len(parts) < 2 or not parts[0].strip():  # Bo‘sh `topic` yoki noto‘g‘ri formatni tekshirish
         update.message.reply_text("⚠️ Please use the correct format: *Topic_name*word*")
         return
 
@@ -43,7 +44,9 @@ def get_definition(update, context):
     else:
         db.insert({"term": word, "definition": clean_definition})
         update.message.reply_text(f"✅ '{word}' has been added to *{topic}* database.")
-    if not result.search(where('topic_name') == topic):
-       result.insert({'topic_name': topic})
+
+    if topic and not result.search(where('topic_name') == topic): 
+        result.insert({'topic_name': topic})
+
 def get_topics():
     return result

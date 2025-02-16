@@ -3,19 +3,22 @@ import wikipediaapi
 from telegram import ReplyKeyboardMarkup
 from config import TOKEN
 from defination import get_definition
-from topic import topic_name,add_topic,list_topic,matn,show_list
+from topic import topic_name,add_topic,list_topic,matn,show_list,new_topic
 from delete import clear_base,clear_data
+from uzbek_data import introduce,translation,show_uzb,clear_uzb
 wiki_wiki = wikipediaapi.Wikipedia(
     user_agent="MyTelegramBot/1.0 (contact: example@email.com)",  
     language="en"
 )
+
 def check_message(update,context):
     text=update.message.text
     if '!' in text:
         clear_base(update,context)
     if '*' in text:
-
+        new_topic(update,context)
         get_definition(update,context)
+        translation(update,context)
     if text.endswith('/'):
         add_topic(update,context)
 
@@ -23,6 +26,7 @@ def check_message(update,context):
 def start(update, context):
     reply = [
         ['👨‍🎓 create topic', 'test'],
+        ['uzbek section'],
       
     ]
     key = ReplyKeyboardMarkup(reply, resize_keyboard=True)
@@ -34,6 +38,9 @@ def start(update, context):
 updater = Updater(TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
+dispatcher.add_handler(MessageHandler(Filters.regex('clear uzbek words'),clear_uzb))
+dispatcher.add_handler(MessageHandler(Filters.regex('uzbek words'), show_uzb))
+dispatcher.add_handler(MessageHandler(Filters.regex('uzbek section'), introduce))
 dispatcher.add_handler(MessageHandler(Filters.regex('clear topic'), clear_data))
 dispatcher.add_handler(MessageHandler(Filters.regex('show all list'), show_list))
 dispatcher.add_handler(MessageHandler(Filters.regex('(?i)^➕ Add words to topic$'), matn))
