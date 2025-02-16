@@ -6,6 +6,7 @@ from defination import get_definition
 from topic import topic_name,add_topic,list_topic,matn,show_list,new_topic
 from delete import clear_base,clear_data
 from uzbek_data import introduce,translation,show_uzb,clear_uzb
+from test import test_data,quiz_test,ask_question,get_answer
 wiki_wiki = wikipediaapi.Wikipedia(
     user_agent="MyTelegramBot/1.0 (contact: example@email.com)",  
     language="en"
@@ -13,6 +14,11 @@ wiki_wiki = wikipediaapi.Wikipedia(
 
 def check_message(update,context):
     text=update.message.text
+    if text=='begin':
+        ask_question(update,context)
+    if text.endswith('?'):
+        quiz_test(update,context)
+    
     if '!' in text:
         clear_base(update,context)
     if '*' in text:
@@ -21,6 +27,8 @@ def check_message(update,context):
         translation(update,context)
     if text.endswith('/'):
         add_topic(update,context)
+    if '?' not in text and '/' not in text and text!='begin' and '!' not in text and '*' not in text:
+        get_answer(update,context)
 
 
 def start(update, context):
@@ -38,6 +46,8 @@ def start(update, context):
 updater = Updater(TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
+
+dispatcher.add_handler(MessageHandler(Filters.regex('test'),test_data))
 dispatcher.add_handler(MessageHandler(Filters.regex('clear uzbek words'),clear_uzb))
 dispatcher.add_handler(MessageHandler(Filters.regex('uzbek words'), show_uzb))
 dispatcher.add_handler(MessageHandler(Filters.regex('uzbek section'), introduce))
@@ -50,6 +60,7 @@ dispatcher.add_handler(MessageHandler(Filters.regex('👨‍🎓 create topic'),
 
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(MessageHandler(Filters.text, check_message))
+
 # dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, get_definition))
 
 updater.start_polling()
