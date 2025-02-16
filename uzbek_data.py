@@ -24,8 +24,8 @@ def translation(update, context):
         update.message.reply_text("❌ Xatolik: Iltimos, matnni 'word*translation' formatida yuboring.")
         return
 
-    matn = parts[0].strip()
-    tarjima = parts[1].strip()
+    matn = parts[0].strip().replace(' ','')
+    tarjima = parts[1].strip().replace(' ','')
 
     topic_db = TinyDB(f'{matn}uzb.json')
     translator = Translator()
@@ -35,12 +35,14 @@ def translation(update, context):
 
    
     topics = db.all()
-    if matn and matn.strip(): 
-         if not any(i.get('topic_name') == matn for i in topics):
-               db.insert({'topic_name': matn})
-    else:
-       update.message.reply_text("❌ Xatolik: Mavzu nomi bo‘sh bo‘lishi mumkin emas!")
-    return
+    a=True
+    for i in topics:
+        if i.get('topic_name')==matn:
+            a=False
+            
+    if a:
+        db.insert({'topic_name':matn})
+
     
 
 def show_uzb(update, context):

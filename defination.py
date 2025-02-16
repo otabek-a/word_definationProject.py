@@ -21,8 +21,8 @@ def get_definition(update, context):
         update.message.reply_text("⚠️ Please use the correct format: *Topic_name*word*")
         return
 
-    topic = parts[0].strip()
-    word = parts[1].strip()
+    topic = parts[0].strip().lower()
+    word = parts[1].strip().lower()
 
     page = wiki_wiki.page(word)
 

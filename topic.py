@@ -11,15 +11,22 @@ res = TinyDB("topics.json")
 
 def new_topic(update, context):
     global res
-    matn = update.message.text.strip().split('*')  
+    matn = update.message.text.lower().strip().split('*')  
 
     if not matn or len(matn[0].strip()) == 0: 
         update.message.reply_text("⚠️ *Topic name cannot be empty!* ❌", parse_mode="Markdown")
         return
 
     num = matn[0].strip()
-    res.insert({"name": num})  
-    print(num)
+    a=True
+    for i in res:
+        if i.get('topic_name')==num:
+            a=False
+            
+    
+    if a:
+        res.insert({"topic_name": num})  
+   
 
 
 
@@ -36,7 +43,7 @@ def show_list(update, context):
     topics = res.all()
     
     for topic_entry in topics:
-        topic = topic_entry.get("name")  
+        topic = topic_entry.get("topic_name")  
         db = TinyDB(f"{topic}.json")
         words = db.all()
 
@@ -70,7 +77,7 @@ def list_topic(update, context):
 
     message = "📝 *Your Topics:* 📖\n\n"
     for index, topic_entry in enumerate(res.all(), start=1):
-        topic = topic_entry.get("name")  
+        topic = topic_entry.get("topic_name")  
         db = TinyDB(f"{topic}.json")  
         word_count = len(db)  
         message += f"{index}. 📌 *{topic}* — {word_count} words 📖\n"
@@ -95,9 +102,9 @@ def add_topic(update, context):
     text = update.message.text.strip().lower()
     text = text.replace('/', '')
 
-    print(res.all())
+ 
     Topic = Query()
-    existing_topic = res.search(Topic.name == text)
+    existing_topic = res.search(Topic.topic_name == text)
 
     if existing_topic:
         update.message.reply_text(f"⚠️ *You already have this topic:* 📌 {text}", parse_mode="Markdown")
