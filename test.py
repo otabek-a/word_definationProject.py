@@ -7,6 +7,10 @@ import time
 res = TinyDB("topics.json")
 text = ''
 result=TinyDB('javob.json')
+j=TinyDB('total.json')
+savol=TinyDB('umumiy.json')
+
+
 def test_data(update, context):
     key = [['result of test'], ['🔙 Back to main menu']]
     reply_key = ReplyKeyboardMarkup(key, one_time_keyboard=True)
@@ -27,79 +31,82 @@ def quiz_test(update, context):
     else:
         update.message.reply_text(f'I cannot find the topic "{matn}".')
 
-def ask_question(update, context):
-    global text
-    db = TinyDB(f'{text}.json')
-    records = db.all()
-    index = 0
-    
-
-
-
-
-
-
-
-
-    
-    
-    while index < len(records):
-        update.message.reply_text(f'{index+1} topic: {text} Question: {records[index].get("definition")}')
-        if index==len(records):
-            text=f'Your {text} topic answers:\n'
-
-        user_input=update.message.text
-        
-        if user_input.lower() == 'exit':
-            update.message.reply_text("Quiz finished.")
-            break
-        time.sleep(10)
-        index+=1
 def get_answer(update, context):
-    global result, text
+    global result, text,j
+    j.truncate()
+    number = []
     db = TinyDB(f'{text}.json')
     matn = update.message.text.lower()
     user_id = update.message.from_user.id
-
-    # Foydalanuvchi javoblarini olish yoki yangilash
     user_data = result.get(doc_id=user_id)
-
+    
     if user_data:
-        user_data["answers"].append(matn)
+        user_data["answers"].append(matn.lower())
         result.update({'answers': user_data["answers"]}, doc_ids=[user_id])
     else:
         result.insert({'user_id': user_id, 'answers': [matn]})
 
     true_count = 0
     false_count = 0
+    questions = db.all()
+    
+    
+    for i in questions:
+        term = i.get('term')
+        number.append(term)
 
-    # To'g'ri javoblarni olish
-    question_db = db.all()
-    correct_answers = [record.get('term').lower() for record in question_db]  # To'g'ri javoblarni olish
+    answer_db = result.all()
+    for i in answer_db:
+        user_answers = i['answers']
+        for answer in user_answers:
+            if answer in number:
+                true_count += 1
+            else:
+                false_count += 1
+    
+    num=[]
+    j.insert({'user_id':user_id,'true_count':true_count,'false_count':false_count})
+    print(j.all()[-1])
 
-    # Foydalanuvchi javoblarini olish
-    user_data = result.get(doc_id=user_id)
-    user_answers = user_data.get('answers', [])  # Agar javoblar bo‘lmasa, bo‘sh ro‘yxat olish
+def ask_question(update, context):
+    global text, j
+    javob = j.all()
+    db = TinyDB(f'{text}.json')
+    records = db.all()
+    index = 0
 
-    # Har bir foydalanuvchi javobini tekshirish
-    for answer in user_answers:
-        if answer in correct_answers:
-            true_count += 1
-        else:
-            false_count += 1
+    while index < len(records):
+        update.message.reply_text(f'{index+1} topic: {text} Question: {records[index].get("definition")}')
+        
+ 
+        user_input = update.message.text.lower()
 
-    # Agar foydalanuvchi ba'zi savollarga javob bermagan bo‘lsa, ularni noto‘g‘ri (`false`) deb hisoblash
-    if len(user_answers) < len(correct_answers):
-        false_count += len(correct_answers) - len(user_answers)
+        if user_input == 'exit':
+            update.message.reply_text("Quiz finished.")
+            break
+        time.sleep(10) 
+        index += 1
+    
+  
+   
 
-    # Natijalarni yangilash (insert emas, update ishlatiladi)
-    tekshir = TinyDB('savol.json')
-    existing_record = tekshir.get(doc_id=user_id)
 
-    if existing_record:
-        tekshir.update({'true': true_count, 'false': false_count}, doc_ids=[user_id])
-    else:
-        tekshir.insert({'user_id': user_id, 'true': true_count, 'false': false_count})
 
-    update.message.reply_text(f"Your results:\n✅ Correct: {true_count}\n❌ Incorrect (including unanswered): {false_count}")
-    print(tekshir.all())
+
+
+def javob_chiqar(update, context):
+    global j, text, savol
+    javob = j.all()[-1]
+     
+    masala = f"Your {text} topic answers:\nTrue answers: {javob['true_count']}\nFalse answers: {javob['false_count']}"
+    update.message.reply_text(f'Topic {text} {masala}')
+
+
+   
+    
+   
+    savol.insert({javob['user_id']: [javob['true_count'], javob['false_count']]})
+    j.truncate()
+    print(savol.all())
+
+    
