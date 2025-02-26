@@ -4,7 +4,7 @@ from telegram import ReplyKeyboardMarkup
 from tinydb import TinyDB, Query
 from config import TOKEN
 import defination
-import os
+from tinydb import where
 
 res = TinyDB("topics.json")
 
@@ -12,20 +12,14 @@ res = TinyDB("topics.json")
 def new_topic(update, context):
     global res
     matn = update.message.text.lower().strip().split('*')  
-
+    topic=matn[0]
+    if not res.search(where('topic_name') == topic):
+      
+       return
     if not matn or len(matn[0].strip()) == 0: 
         update.message.reply_text("⚠️ *Topic name cannot be empty!* ❌", parse_mode="Markdown")
         return
 
-    num = matn[0].strip()
-    a=True
-    for i in res:
-        if i.get('topic_name')==num:
-            a=False
-            
-    
-    if a:
-        res.insert({"topic_name": num})  
    
 
 
